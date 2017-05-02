@@ -35,9 +35,15 @@ public class WoW extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		config();
-		if (isConfigured)
-			mainMenu(primaryStage);
+//		config();
+//		if (isConfigured)
+//			mainMenu(primaryStage);
+		int[][] params={
+				{100,5,20},
+				{20,20,20,20,20},
+				{20,20,20,20,20}};
+		SP sp=new SP(params);
+		sp.handle(null);
 	}
 
 	private void config() {

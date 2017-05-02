@@ -12,9 +12,9 @@ import world.Team;
  * </ol>
  *
  * @author  Kyle Lei
- * @version  1.0.0
+ * @version  1.1.0
  */
-public class Warrior {
+public abstract class Warrior {
 	protected int ID;
 	protected int HP;
 	protected int attackV;

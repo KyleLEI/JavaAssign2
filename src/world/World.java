@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import warriors.Cheer;
 import warriors.Death;
 import warriors.Dragon;
@@ -23,20 +25,20 @@ import warriors.Warrior;
  * </ol>
  *
  * @author Kyle Lei
- * @version 1.0.0
+ * @version 1.1.0
  */
 
-public class World implements Runnable {
-	protected Clock clock;
+public class World implements Runnable{
+	public Clock clock;
 	protected int T;
 	protected int[] HP;
 	protected int[] attack;
 	protected City[] cities;
-	protected Headquarter[] hq;
+	public Headquarter[] hq;
 	protected WarriorType type;
-	protected int redHQOccupierCount = 0;
-	protected int blueHQOccupierCount = 0;
-	protected boolean end = false;
+	public int redHQOccupierCount = 0;
+	public int blueHQOccupierCount = 0;
+	public BooleanProperty end = new SimpleBooleanProperty(false);
 	protected LinkedList<MoveMessage> moves;
 	protected LinkedList<Warrior> redAwardee;
 	protected LinkedList<Warrior> blueAwardee;
@@ -271,11 +273,11 @@ public class World implements Runnable {
 		moves.clear();
 
 		if (redHQOccupierCount == 2) {
-			end = true;
+			end.set(true);
 			announceHQTaken(Team.red);
 		}
 		if (blueHQOccupierCount == 2) {
-			end = true;
+			end.set(true);
 			announceHQTaken(Team.blue);
 		}
 	}
@@ -434,7 +436,7 @@ public class World implements Runnable {
 				break;
 			case 10:
 				move();
-				if (end)
+				if (end.get())
 					return;// end game (victory)
 				break;
 			case 20:
