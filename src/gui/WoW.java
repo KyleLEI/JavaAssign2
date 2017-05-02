@@ -39,7 +39,7 @@ public class WoW extends Application {
 //		if (isConfigured)
 //			mainMenu(primaryStage);
 		int[][] params={
-				{100,5,20},
+				{100,5,2000},
 				{20,20,20,20,20},
 				{20,20,20,20,20}};
 		SP sp=new SP(params);

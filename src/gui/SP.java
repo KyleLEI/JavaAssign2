@@ -1,15 +1,11 @@
 package gui;
 
 import Images.ImagesLoader;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -42,51 +38,54 @@ public class SP implements EventHandler<ActionEvent> {
 	private ImageView[] flags;
 	private ImagesLoader imgs = new ImagesLoader();
 
-	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
-	BooleanProperty SPend = new SimpleBooleanProperty(false);
-
-	public SP(int param[][]) {
+	SP(int param[][]) {
 		m_param = param;
 	}
 
 	@Override
 	public void handle(ActionEvent event) {
-		world = new SPWorld(m_param, shouldUpdateBlue, SPend);
+		world = new SPWorld(m_param);
 		world.hq[0].lifeElements.addListener((a, b, c) -> {
 			LE.setText("Life Elements: " + world.getPlayerLE());
 		});
 		world.clock.minute.addListener((a, b, c) -> {
 			time.setText(world.clock.toString());
 		});
-		SPend.addListener((a, b, c) -> {
-			if (world.redHQOccupierCount == 2) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("Game Over");
-				alert.setHeaderText("Blue Victory");
-				alert.setContentText("The blue team have secured victory");
-				alert.showAndWait();//FIXME: not FX thread
-				return;
-			}
-			if (world.blueHQOccupierCount == 2) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("Game Over");
-				alert.setHeaderText("Red Victory");
-				alert.setContentText("The red team have secured victory");
-				alert.showAndWait();
-				return;
-			}
-
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Game Over");
-			alert.setHeaderText("Draw");
-			alert.setContentText("It's a draw");
-			alert.showAndWait();
+		world.end.addListener((a, b, c) -> {// FIXME: not FX thread
+			// if (world.redHQOccupierCount == 2) {
+			// Alert alert = new Alert(AlertType.INFORMATION);
+			// alert.setTitle("Game Over");
+			// alert.setHeaderText("Blue Victory");
+			// alert.setContentText("The blue team have secured victory");
+			// alert.showAndWait();
+			// return;
+			// }
+			// if (world.blueHQOccupierCount == 2) {
+			// Alert alert = new Alert(AlertType.INFORMATION);
+			// alert.setTitle("Game Over");
+			// alert.setHeaderText("Red Victory");
+			// alert.setContentText("The red team have secured victory");
+			// alert.showAndWait();
+			// return;
+			// }
+			//
+			// Alert alert = new Alert(AlertType.INFORMATION);
+			// alert.setTitle("Game Over");
+			// alert.setHeaderText("Draw");
+			// alert.setContentText("It's a draw");
+			// alert.showAndWait();
 
 		});
-		shouldUpdateBlue.addListener((o, ov, c) -> {
+		world.shouldUpdateBlue.addListener((o, ov, c) -> {
 			if (c == true) {
-				displaySpawn(world.hq[1].warriorInHQ.getFirst());
+				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
 				world.shouldUpdateBlue.set(false);
+			}
+		});
+		world.shouldUpdateMap.addListener((a, b, c) -> {
+			if (c == true) {
+				updateMap();
+				world.shouldUpdateMap.set(false);
 			}
 		});
 		Thread logic = new Thread(world);
@@ -274,6 +273,7 @@ public class SP implements EventHandler<ActionEvent> {
 		case DRAGON:
 			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
 					.setImage(f == Team.red ? imgs.dragonRed : imgs.dragonBlue);
+			break;
 		case ICEMAN:
 			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
 					.setImage(f == Team.red ? imgs.icemanRed : imgs.icemanBlue);
@@ -289,34 +289,65 @@ public class SP implements EventHandler<ActionEvent> {
 		}
 	}
 
-	void displaySpawn(Warrior w) {
-		int slotIndex = (w.getTeam() == Team.red ? 0 : 6);
+	void displayWarrior(Warrior w, int cityIndex) {
+		if (w == null) {// this means the city is empty
+			((ImageView) slots[cityIndex].getChildren().get(0)).setImage(null);
+			((ImageView) slots[cityIndex].getChildren().get(1)).setImage(null);
+			return;
+		}
 		int slotslotIndex = (w.getTeam() == Team.red ? 0 : 1);
 		if (w instanceof Lion) {
-			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
+			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.lionRed : imgs.lionBlue);
 			return;
 		}
 		if (w instanceof Dragon) {
-			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
+			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.dragonRed : imgs.dragonBlue);
 			return;
 		}
 		if (w instanceof Iceman) {
-			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
+			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.icemanRed : imgs.icemanBlue);
 			return;
 		}
 		if (w instanceof Ninja) {
-			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
+			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.ninjaRed : imgs.ninjaBlue);
 			return;
 		}
 		if (w instanceof Wolf) {
-			((ImageView) slots[slotIndex].getChildren().get(slotslotIndex))
+			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.wolfRed : imgs.wolfBlue);
 			return;
 		}
+	}
+
+	void cleanMap(int cityIndex) {
+		((ImageView) slots[cityIndex].getChildren().get(0)).setImage(null);
+		((ImageView) slots[cityIndex].getChildren().get(1)).setImage(null);
+	}
+
+	void updateMap() {
+		((ImageView) slots[0].getChildren().get(0)).setImage(null);// spawned
+																	// moved out
+		for (int i = 0; i < 5; i++) {
+			if (world.cities[i].warriorInCity.isEmpty()) {
+				displayWarrior(null, i + 1);
+				continue;
+			}
+			Warrior W1 = world.cities[i].warriorInCity.getFirst();
+			Warrior W2 = world.cities[i].warriorInCity.getLast();
+			if(W1==W2) {
+				cleanMap(i+1);
+				displayWarrior(W1,i+1);
+				continue;
+			}
+			displayWarrior(W1, i + 1);
+			displayWarrior(W2, i + 1);
+		}
+		((ImageView) slots[6].getChildren().get(1)).setImage(null);// spawned
+																	// moved out
 	}
 
 }

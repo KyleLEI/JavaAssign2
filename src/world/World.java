@@ -33,7 +33,7 @@ public class World implements Runnable{
 	protected int T;
 	protected int[] HP;
 	protected int[] attack;
-	protected City[] cities;
+	public City[] cities;
 	public Headquarter[] hq;
 	protected WarriorType type;
 	public int redHQOccupierCount = 0;

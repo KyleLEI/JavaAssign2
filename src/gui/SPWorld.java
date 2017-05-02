@@ -1,6 +1,7 @@
 package gui;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import warriors.Dragon;
 import warriors.Iceman;
 import warriors.Lion;
@@ -14,17 +15,16 @@ import world.WarriorType;
 import world.World;
 
 public class SPWorld extends World {
-	public volatile boolean task_should_exit = false;
+	volatile boolean task_should_exit = false;
 	boolean haveSpawnedThisRound = false;
-	BooleanProperty shouldUpdateBlue;
-	BooleanProperty SPend;
+	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
+	BooleanProperty end = new SimpleBooleanProperty(false);
+	BooleanProperty shouldUpdateMap = new SimpleBooleanProperty(false);
 
-	public SPWorld(int[][] param,BooleanProperty sub,BooleanProperty se) {
+	public SPWorld(int[][] param) {
 		super(param[0][0], param[0][1], param[0][2]);
 		setHP(param[1][0], param[1][1], param[1][2], param[1][3], param[1][4]);
 		setAttack(param[1][0], param[1][1], param[1][2], param[1][3], param[1][4]);
-		shouldUpdateBlue=sub;
-		SPend=se;
 	}
 
 	@Override
@@ -143,6 +143,7 @@ public class SPWorld extends World {
 		if (redHQOccupierCount == 2 || blueHQOccupierCount == 2) {
 			end.set(true);
 		}
-		// TODO: update map here
+		shouldUpdateMap.set(true);
+		
 	}
 }
