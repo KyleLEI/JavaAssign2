@@ -29,7 +29,7 @@ public class SPWorld extends World {
 	public SPWorld(int[][] param) {
 		super(param[0][0], param[0][1], param[0][2]);
 		setHP(param[1][0], param[1][1], param[1][2], param[1][3], param[1][4]);
-		setAttack(param[1][0], param[1][1], param[1][2], param[1][3], param[1][4]);
+		setAttack(param[2][0], param[2][1], param[2][2], param[2][3], param[2][4]);
 	}
 
 	@Override
@@ -145,7 +145,7 @@ public class SPWorld extends World {
 	}
 
 	protected void checkVictory() {
-		if (redHQOccupierCount == 2 || blueHQOccupierCount == 2) {
+		if (redHQOccupierCount.get() == 2 || blueHQOccupierCount.get() == 2) {
 			end.set(true);
 		}
 		shouldUpdateMap.set(true);
@@ -171,12 +171,12 @@ public class SPWorld extends World {
 //				System.out.println(clock + " " + c + " in city " + (cityIndex + 1));
 			}
 		} catch (Death d) {
-			shouldUpdateMap.set(true);
 			if (d.getKiller().getTeam() == Team.red)
 				redAwardee.addFirst(d.getKiller());
 			else
 				blueAwardee.add(d.getKiller());
 			cities[cityIndex].warriorInCity.remove(d.getVictim());
+			shouldUpdateMap.set(true);//call update after removing warrior
 			changeFlag(cityIndex, d.getKiller().getTeam());
 			return;
 		}

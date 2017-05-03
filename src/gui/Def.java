@@ -12,5 +12,6 @@ public interface Def {
 	/*------UI parameters------*/
 	final int flagW=40;
 	final int cityW=60;
+	final String font="Arial";
 	
 }

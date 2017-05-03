@@ -5,7 +5,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import warriors.Cheer;
 import warriors.Death;
 import warriors.Dragon;
@@ -36,8 +38,8 @@ public class World implements Runnable{
 	public City[] cities;
 	public Headquarter[] hq;
 	protected WarriorType type;
-	public int redHQOccupierCount = 0;
-	public int blueHQOccupierCount = 0;
+	public IntegerProperty redHQOccupierCount = new SimpleIntegerProperty(0);
+	public IntegerProperty blueHQOccupierCount = new SimpleIntegerProperty(0);
 	public BooleanProperty end = new SimpleBooleanProperty(false);
 	protected LinkedList<MoveMessage> moves;
 	protected LinkedList<Warrior> redAwardee;
@@ -132,7 +134,7 @@ public class World implements Runnable{
 					moved.add(w);
 				} else {
 					w.beforeMove();
-					redHQOccupierCount++;
+					redHQOccupierCount.set(redHQOccupierCount.get()+1);
 					it.remove();
 					--w.location;
 					moves.add(new MoveMessage(w));
@@ -181,7 +183,7 @@ public class World implements Runnable{
 					moved.add(w);
 				} else {
 					w.beforeMove();
-					blueHQOccupierCount++;
+					blueHQOccupierCount.set(blueHQOccupierCount.get()+1);
 					++w.location;
 					moves.add(new MoveMessage(w));
 					it.remove();
@@ -196,14 +198,14 @@ public class World implements Runnable{
 					continue;
 				if (w.getTeam() == Team.red) {
 					w.beforeMove();
-					blueHQOccupierCount++;
+					blueHQOccupierCount.set(blueHQOccupierCount.get()+1);
 					++w.location;
 					moves.add(new MoveMessage(w));
 					it.remove();
 					moved.add(w);
 				} else {
 					w.beforeMove();
-					redHQOccupierCount++;
+					redHQOccupierCount.set(redHQOccupierCount.get()+1);
 					--w.location;
 					moves.add(new MoveMessage(w));
 					it.remove();
@@ -272,11 +274,11 @@ public class World implements Runnable{
 		moves.forEach(System.out::println);
 		moves.clear();
 
-		if (redHQOccupierCount == 2) {
+		if (redHQOccupierCount.get() == 2) {
 			end.set(true);
 			announceHQTaken(Team.red);
 		}
-		if (blueHQOccupierCount == 2) {
+		if (blueHQOccupierCount.get() == 2) {
 			end.set(true);
 			announceHQTaken(Team.blue);
 		}

@@ -41,6 +41,8 @@ public class SP implements EventHandler<ActionEvent> {
 	private ImagesLoader imgs = new ImagesLoader();
 	private ImageView thumbnail;
 	private Text[] propertyV = new Text[8];
+	private Text redOccu;
+	private Text blueOccu;
 
 	SP(int param[][]) {
 		m_param = param;
@@ -56,11 +58,11 @@ public class SP implements EventHandler<ActionEvent> {
 			time.setText(world.clock.toString());
 		});
 		world.end.addListener((a, b, c) -> {
-			if (world.redHQOccupierCount == 2) {
+			if (world.redHQOccupierCount.get() == 2) {
 				spawnMsg.setText("Blue\nVictory!");
 				return;
 			}
-			if (world.blueHQOccupierCount == 2) {
+			if (world.blueHQOccupierCount.get() == 2) {
 				spawnMsg.setText("Red\nVictory!");
 				return;
 			}
@@ -80,10 +82,17 @@ public class SP implements EventHandler<ActionEvent> {
 		});
 		world.shouldUpdateFlag.addListener((a, b, c) -> {
 			if (c == true) {
-				updateMap();
+				updateFlag();
 				world.shouldUpdateFlag.set(false);
 			}
 		});
+		world.redHQOccupierCount.addListener((a,b,c)->{
+			redOccu.setText("   "+c);
+		});
+		world.blueHQOccupierCount.addListener((a,b,c)->{
+			blueOccu.setText("   "+c);
+		});
+		
 		Thread logic = new Thread(world);
 		Stage stage = new Stage();
 		stage.setTitle("Singleplayer");
@@ -110,10 +119,10 @@ public class SP implements EventHandler<ActionEvent> {
 		hb.setPadding(new Insets(15, 12, 15, 12));
 		hb.setSpacing(10);
 		time = new Text(world.getClock().toString());
-		time.setFont(new Font("Helvetica", 20));
+		time.setFont(new Font(Def.font, 20));
 		time.setFill(Color.WHITE);
 		LE = new Text("Life Elements: " + world.getPlayerLE());
-		LE.setFont(new Font("Helvetica", 20));
+		LE.setFont(new Font(Def.font, 20));
 		LE.setFill(Color.WHITE);
 		Region blank = new Region();
 		blank.setPrefWidth(500);
@@ -157,7 +166,7 @@ public class SP implements EventHandler<ActionEvent> {
 		flow.getChildren().add(spawnNinja);
 
 		spawnMsg = new Text();
-		spawnMsg.setFont(new Font("Helvetica", 18));
+		spawnMsg.setFont(new Font(Def.font, 18));
 		spawnMsg.setFill(Color.CRIMSON);
 		spawnMsg.setTextAlignment(TextAlignment.JUSTIFY);
 		flow.getChildren().add(spawnMsg);
@@ -203,7 +212,16 @@ public class SP implements EventHandler<ActionEvent> {
 			grid.add(slots[i], i, 2);
 		}
 
-		grid.setGridLinesVisible(true);// TODO: remove after debug
+		redOccu=new Text("   "+0);
+		redOccu.setFill(Color.BLUE);
+		redOccu.setFont(new Font(Def.font, 16));
+		blueOccu=new Text("   "+0);
+		blueOccu.setFill(Color.RED);
+		blueOccu.setFont(new Font(Def.font, 16));
+		
+		grid.add(redOccu, 0, 3);
+		grid.add(blueOccu, 6, 3);
+//		grid.setGridLinesVisible(true);// TODO: remove after debug
 		return grid;
 	}
 
@@ -266,7 +284,7 @@ public class SP implements EventHandler<ActionEvent> {
 
 	private Text getPropertyName(String name) {
 		Text ret = new Text(" " + name);
-		ret.setFont(new Font("Helvetica", 16));
+		ret.setFont(new Font(Def.font, 16));
 		ret.setFill(Color.RED);
 		ret.setTextAlignment(TextAlignment.LEFT);
 		return ret;
