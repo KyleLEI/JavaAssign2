@@ -9,10 +9,12 @@ import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -37,6 +39,8 @@ public class SP implements EventHandler<ActionEvent> {
 	private HBox[] slots;
 	private ImageView[] flags;
 	private ImagesLoader imgs = new ImagesLoader();
+	private ImageView thumbnail;
+	private Text[] propertyV = new Text[8];
 
 	SP(int param[][]) {
 		m_param = param;
@@ -51,30 +55,16 @@ public class SP implements EventHandler<ActionEvent> {
 		world.clock.minute.addListener((a, b, c) -> {
 			time.setText(world.clock.toString());
 		});
-		world.end.addListener((a, b, c) -> {// FIXME: not FX thread
-			// if (world.redHQOccupierCount == 2) {
-			// Alert alert = new Alert(AlertType.INFORMATION);
-			// alert.setTitle("Game Over");
-			// alert.setHeaderText("Blue Victory");
-			// alert.setContentText("The blue team have secured victory");
-			// alert.showAndWait();
-			// return;
-			// }
-			// if (world.blueHQOccupierCount == 2) {
-			// Alert alert = new Alert(AlertType.INFORMATION);
-			// alert.setTitle("Game Over");
-			// alert.setHeaderText("Red Victory");
-			// alert.setContentText("The red team have secured victory");
-			// alert.showAndWait();
-			// return;
-			// }
-			//
-			// Alert alert = new Alert(AlertType.INFORMATION);
-			// alert.setTitle("Game Over");
-			// alert.setHeaderText("Draw");
-			// alert.setContentText("It's a draw");
-			// alert.showAndWait();
-
+		world.end.addListener((a, b, c) -> {
+			if (world.redHQOccupierCount == 2) {
+				spawnMsg.setText("Blue\nVictory!");
+				return;
+			}
+			if (world.blueHQOccupierCount == 2) {
+				spawnMsg.setText("Red\nVictory!");
+				return;
+			}
+			spawnMsg.setText("It's a\nDraw!");
 		});
 		world.shouldUpdateBlue.addListener((o, ov, c) -> {
 			if (c == true) {
@@ -83,6 +73,12 @@ public class SP implements EventHandler<ActionEvent> {
 			}
 		});
 		world.shouldUpdateMap.addListener((a, b, c) -> {
+			if (c == true) {
+				updateMap();
+				world.shouldUpdateMap.set(false);
+			}
+		});
+		world.shouldUpdateFlag.addListener((a, b, c) -> {
 			if (c == true) {
 				updateMap();
 				world.shouldUpdateMap.set(false);
@@ -103,6 +99,7 @@ public class SP implements EventHandler<ActionEvent> {
 		ret.setTop(configTop());
 		ret.setRight(configRight());
 		ret.setCenter(configCenter());
+		ret.setBottom(configBottom());
 		return ret;
 	}
 
@@ -162,7 +159,7 @@ public class SP implements EventHandler<ActionEvent> {
 		spawnMsg = new Text();
 		spawnMsg.setFont(new Font("Helvetica", 18));
 		spawnMsg.setFill(Color.CRIMSON);
-		spawnMsg.setTextAlignment(TextAlignment.CENTER);
+		spawnMsg.setTextAlignment(TextAlignment.JUSTIFY);
 		flow.getChildren().add(spawnMsg);
 		return flow;
 	}
@@ -204,8 +201,61 @@ public class SP implements EventHandler<ActionEvent> {
 			grid.add(slots[i], i, 2);
 		}
 
-		grid.setGridLinesVisible(true);
+		grid.setGridLinesVisible(true);// TODO: remove after debug
 		return grid;
+	}
+
+	private HBox configBottom() {
+		HBox ret = new HBox(20);
+		ret.setStyle("-fx-background-color: F0F8FF;");
+		ret.setPadding(new Insets(15, 12, 15, 12));
+		ret.setSpacing(10);
+
+		thumbnail = new ImageView();
+		thumbnail.setFitHeight(100);
+		thumbnail.setFitWidth(100);
+		ret.getChildren().add(thumbnail);
+
+		GridPane details = new GridPane();
+		details.setPadding(new Insets(5, 10, 5, 10));
+		details.setPrefSize(800, 35*4);
+		details.setGridLinesVisible(true);
+		configPropertyTitles(details);
+		setConstraints(details);
+		ret.getChildren().add(details);
+
+		return ret;
+	}
+
+	private void configPropertyTitles(GridPane grid) {
+		grid.add(getPropertyName("Type"), 0, 0);
+		grid.add(getPropertyName("Party"), 0, 1);
+		grid.add(getPropertyName("ID"), 0, 2);
+		grid.add(getPropertyName("Location"), 0, 3);
+		grid.add(getPropertyName("HP"), 2, 0);
+		grid.add(getPropertyName("Attack"), 2, 1);
+		grid.add(getPropertyName("Kill"), 2, 2);
+		grid.add(getPropertyName("Step"), 2, 3);
+	}
+	
+	private void setConstraints(GridPane grid){
+		ColumnConstraints colConstraints = new ColumnConstraints();
+		RowConstraints rowConstraints = new RowConstraints();
+		colConstraints.setPrefWidth(150);
+		rowConstraints.setPrefHeight(35);
+		for(int row=0;row<4;row++)
+			for(int col=0;col<1;col++){
+				grid.getColumnConstraints().add(colConstraints);
+				grid.getRowConstraints().add(rowConstraints);
+			}
+	}
+
+	private Text getPropertyName(String name) {
+		Text ret = new Text(" "+name);
+		ret.setFont(new Font("Helvetica", 16));
+		ret.setFill(Color.RED);
+		ret.setTextAlignment(TextAlignment.LEFT);
+		return ret;
 	}
 
 	private class spawnHandler implements EventHandler<MouseEvent> {
@@ -217,6 +267,8 @@ public class SP implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(MouseEvent event) {
+			if (world.end.get())
+				return;
 			switch (world.requestSpawn(requestType)) { // handle spawn results
 			case Def.mSpawnSuccess:
 				displaySpawn(Team.red, requestType);
@@ -338,9 +390,9 @@ public class SP implements EventHandler<ActionEvent> {
 			}
 			Warrior W1 = world.cities[i].warriorInCity.getFirst();
 			Warrior W2 = world.cities[i].warriorInCity.getLast();
-			if(W1==W2) {
-				cleanMap(i+1);
-				displayWarrior(W1,i+1);
+			if (W1 == W2) {
+				cleanMap(i + 1);
+				displayWarrior(W1, i + 1);
 				continue;
 			}
 			displayWarrior(W1, i + 1);
@@ -350,4 +402,9 @@ public class SP implements EventHandler<ActionEvent> {
 																	// moved out
 	}
 
+	void updateFlag() {
+		ImageView flagSlotToSet = flags[world.cityToUpdate];
+		Team flagToSet = world.flagToUpdate;
+		flagSlotToSet.setImage(flagToSet == Team.red ? imgs.redFlag : imgs.blueFlag);
+	}
 }

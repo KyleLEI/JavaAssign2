@@ -2,6 +2,8 @@ package gui;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import warriors.Cheer;
+import warriors.Death;
 import warriors.Dragon;
 import warriors.Iceman;
 import warriors.Lion;
@@ -20,6 +22,9 @@ public class SPWorld extends World {
 	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
 	BooleanProperty end = new SimpleBooleanProperty(false);
 	BooleanProperty shouldUpdateMap = new SimpleBooleanProperty(false);
+	BooleanProperty shouldUpdateFlag =new SimpleBooleanProperty(false);
+	Team flagToUpdate;
+	int cityToUpdate;
 
 	public SPWorld(int[][] param) {
 		super(param[0][0], param[0][1], param[0][2]);
@@ -144,6 +149,37 @@ public class SPWorld extends World {
 			end.set(true);
 		}
 		shouldUpdateMap.set(true);
+	}
+	
+	protected void announceFlag(int cityI, Team flag) {
+//		System.out.println(clock + " " + flag + " flag raised in city " + (cityI + 1));
+		flagToUpdate=flag;
+		cityToUpdate=cityI;
+		shouldUpdateFlag.set(true);
 		
+	}
+	protected void attack(Warrior wa, Warrior wb, int cityIndex) {
+		try {
+//			System.out.println(clock + " " + wa + " attacked " + wb + " in city " + (cityIndex + 1) + " with "
+//					+ wa.getHP() + " elements and force " + wa.getAttackV());
+			wa.attack(wb);
+			try {
+				if (!(wb instanceof Ninja))
+//					System.out.println(clock + " " + wb + " fought back against " + wa + " in city " + (cityIndex + 1));
+				wb.counter(wa);
+			} catch (Cheer c) {// cheer after not being killed by enemy counter
+//				System.out.println(clock + " " + c + " in city " + (cityIndex + 1));
+			}
+		} catch (Death d) {
+			shouldUpdateMap.set(true);
+			if (d.getKiller().getTeam() == Team.red)
+				redAwardee.addFirst(d.getKiller());
+			else
+				blueAwardee.add(d.getKiller());
+			cities[cityIndex].warriorInCity.remove(d.getVictim());
+			changeFlag(cityIndex, d.getKiller().getTeam());
+			return;
+		}
+		changeFlag(cityIndex, Team.none);
 	}
 }

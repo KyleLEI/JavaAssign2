@@ -40,8 +40,8 @@ public class WoW extends Application {
 //			mainMenu(primaryStage);
 		int[][] params={
 				{100,5,2000},
-				{20,20,20,20,20},
-				{20,20,20,20,20}};
+				{10,20,50,50,30},
+				{20,50,50,50,50}};
 		SP sp=new SP(params);
 		sp.handle(null);
 	}
