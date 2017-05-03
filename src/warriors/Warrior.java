@@ -12,15 +12,28 @@ import world.Team;
  * </ol>
  *
  * @author  Kyle Lei
- * @version  1.1.0
+ * @version  1.2.0
  */
 public abstract class Warrior {
-	protected int ID;
+	public int ID;
 	protected int HP;
 	protected int attackV;
 	protected Team team;
 	public int location=0;
-	
+	protected int enemiesKilled=0;
+	protected int steps=0;
+	public int getID() {
+		return ID;
+	}
+
+	public int getEnemiesKilled() {
+		return enemiesKilled;
+	}
+
+	public int getSteps() {
+		return steps;
+	}
+
 	/**
 	 * Returns whether the warrior's HP is less or equal to 0
 	 *
@@ -88,7 +101,9 @@ public abstract class Warrior {
 	 * Should be overridden by {@link Iceman} to calculate HP reduction
 	 *
 	 */
-	public void beforeMove(){};
+	public void beforeMove(){
+		steps++;
+	};
 	
 	/**
 	 * Active attack, The HP of the target reduces by the attacker’s attack value. 
@@ -102,6 +117,7 @@ public abstract class Warrior {
 		int HPBefore=enemy.HP;
 		enemy.HP-=this.attackV;
 		if(enemy.isDead()) {
+			++enemiesKilled;
 			if(enemy instanceof Lion){
 				this.HP+=HPBefore;//transfer the HP to the warrior that killed it
 			}

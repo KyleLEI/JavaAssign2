@@ -8,7 +8,7 @@ import world.Team;
  * when its HP is less or equal to 0 after decreasing by 9, its HP will reduce to 1.
  *
  * @author  Kyle Lei
- * @version  1.0.0
+ * @version  1.2.0
  */
 public class Iceman extends Warrior {
 	/**
@@ -23,7 +23,6 @@ public class Iceman extends Warrior {
 		super(inID,inHP,inAttackV,inTeam);
 	}
 	
-	int steps=0;
 	/**
 	 * Reduce HP by 9 and increase attack by 20 every two steps.
 	 */

@@ -12,7 +12,7 @@ import world.Team;
  * but when it fights back and kills an enemy, this will not happen.
  *
  * @author  Kyle Lei
- * @version  1.0.0
+ * @version  1.2.0
  */
 public class Wolf extends Warrior{
 	/**
@@ -27,7 +27,7 @@ public class Wolf extends Warrior{
 		super(inID,inHP,inAttackV,inTeam);
 	}
 	
-	int enemiesKilled=0;
+	
 	
 	/**
 	 * If the killed enemy is a lion, 

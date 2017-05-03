@@ -81,7 +81,7 @@ public class SP implements EventHandler<ActionEvent> {
 		world.shouldUpdateFlag.addListener((a, b, c) -> {
 			if (c == true) {
 				updateMap();
-				world.shouldUpdateMap.set(false);
+				world.shouldUpdateFlag.set(false);
 			}
 		});
 		Thread logic = new Thread(world);
@@ -194,9 +194,11 @@ public class SP implements EventHandler<ActionEvent> {
 			ImageView red = new ImageView();
 			red.setFitHeight(Def.cityW / 2);
 			red.setFitWidth(Def.cityW / 2);
+			red.setOnMouseClicked(new detailHandler(i, 0));
 			ImageView blue = new ImageView();
 			blue.setFitHeight(Def.cityW / 2);
 			blue.setFitWidth(Def.cityW / 2);
+			blue.setOnMouseClicked(new detailHandler(i, 1));
 			slots[i].getChildren().addAll(red, blue);
 			grid.add(slots[i], i, 2);
 		}
@@ -218,9 +220,10 @@ public class SP implements EventHandler<ActionEvent> {
 
 		GridPane details = new GridPane();
 		details.setPadding(new Insets(5, 10, 5, 10));
-		details.setPrefSize(800, 35*4);
+		details.setPrefSize(800, 35 * 4);
 		details.setGridLinesVisible(true);
 		configPropertyTitles(details);
+		configPropertyFields(details);
 		setConstraints(details);
 		ret.getChildren().add(details);
 
@@ -237,21 +240,32 @@ public class SP implements EventHandler<ActionEvent> {
 		grid.add(getPropertyName("Kill"), 2, 2);
 		grid.add(getPropertyName("Step"), 2, 3);
 	}
-	
-	private void setConstraints(GridPane grid){
+
+	private void configPropertyFields(GridPane grid) {
+		for (int i = 0; i < 8; i++) {
+			propertyV[i] = new Text();
+		}
+		for (int row = 0; row < 4; row++) {
+			grid.add(propertyV[2 * row], 1, row);
+			grid.add(propertyV[2 * row + 1], 3, row);
+		}
+	}
+
+	// this function took me a day to figure out
+	private void setConstraints(GridPane grid) {
 		ColumnConstraints colConstraints = new ColumnConstraints();
 		RowConstraints rowConstraints = new RowConstraints();
 		colConstraints.setPrefWidth(150);
 		rowConstraints.setPrefHeight(35);
-		for(int row=0;row<4;row++)
-			for(int col=0;col<1;col++){
+		for (int row = 0; row < 4; row++)
+			for (int col = 0; col < 1; col++) {
 				grid.getColumnConstraints().add(colConstraints);
 				grid.getRowConstraints().add(rowConstraints);
 			}
 	}
 
 	private Text getPropertyName(String name) {
-		Text ret = new Text(" "+name);
+		Text ret = new Text(" " + name);
 		ret.setFont(new Font("Helvetica", 16));
 		ret.setFill(Color.RED);
 		ret.setTextAlignment(TextAlignment.LEFT);
@@ -314,6 +328,55 @@ public class SP implements EventHandler<ActionEvent> {
 
 	}
 
+	private class detailHandler implements EventHandler<MouseEvent> {
+		int city;
+		int t;
+
+		detailHandler(int cityIndex, int team) {
+			city = cityIndex;
+			t = team;
+		}
+
+		@Override
+		public void handle(MouseEvent event) {
+			if (city == 0) {
+				updateDetails(world.hq[0].warriorInHQ.getFirst());
+				displayWarrior(world.hq[0].warriorInHQ.getFirst(),thumbnail);
+				return;
+			}
+			if (city == 6) {
+				updateDetails(world.hq[1].warriorInHQ.getFirst());
+				displayWarrior(world.hq[1].warriorInHQ.getFirst(),thumbnail);
+				return;
+			}
+			updateDetails(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
+					: world.cities[city - 1].warriorInCity.getLast());
+			displayWarrior(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
+					: world.cities[city - 1].warriorInCity.getLast(),thumbnail);
+		}
+
+		private void updateDetails(Warrior w) {
+			propertyV[0].setText(" " + w.getClass().getSimpleName());
+			propertyV[1].setText(" " + w.getHP());
+			propertyV[2].setText(" " + (w.getTeam() == Team.red ? "Red" : "Blue"));
+			propertyV[3].setText(" " + w.getAttackV());
+			propertyV[4].setText(" " + w.getID());
+			propertyV[5].setText(" " + w.getEnemiesKilled());
+
+			String location;
+			if (city == 0)
+				location = "Red HQ";
+			else if (city == 6)
+				location = "Blue HQ";
+			else
+				location = "City " + city;
+
+			propertyV[6].setText(" " + location);
+			propertyV[7].setText(" " + w.getSteps());
+
+		}
+	}
+
 	void displaySpawn(Team f, WarriorType.type t) {
 		int slotIndex = (f == Team.red ? 0 : 6);
 		int slotslotIndex = (f == Team.red ? 0 : 1);
@@ -371,6 +434,33 @@ public class SP implements EventHandler<ActionEvent> {
 		if (w instanceof Wolf) {
 			((ImageView) slots[cityIndex].getChildren().get(slotslotIndex))
 					.setImage(w.getTeam() == Team.red ? imgs.wolfRed : imgs.wolfBlue);
+			return;
+		}
+	}
+
+	void displayWarrior(Warrior w, ImageView i) {
+		if (w == null) {// this means the city is empty
+			i.setImage(null);
+			return;
+		}
+		if (w instanceof Lion) {
+			i.setImage(w.getTeam() == Team.red ? imgs.lionRedHD : imgs.lionBlueHD);
+			return;
+		}
+		if (w instanceof Dragon) {
+			i.setImage(w.getTeam() == Team.red ? imgs.dragonRedHD : imgs.dragonBlueHD);
+			return;
+		}
+		if (w instanceof Iceman) {
+			i.setImage(w.getTeam() == Team.red ? imgs.icemanRedHD : imgs.icemanBlueHD);
+			return;
+		}
+		if (w instanceof Ninja) {
+			i.setImage(w.getTeam() == Team.red ? imgs.ninjaRedHD : imgs.ninjaBlueHD);
+			return;
+		}
+		if (w instanceof Wolf) {
+			i.setImage(w.getTeam() == Team.red ? imgs.wolfRedHD : imgs.wolfBlueHD);
 			return;
 		}
 	}
