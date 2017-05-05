@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -50,6 +51,7 @@ public class SP implements EventHandler<ActionEvent> {
 
 	@Override
 	public void handle(ActionEvent event) {
+		((Stage)(((Node) event.getSource()).getScene().getWindow())).close();
 		world = new SPWorld(m_param);
 		world.hq[0].lifeElements.addListener((a, b, c) -> {
 			LE.setText("Life Elements: " + world.getPlayerLE());
@@ -221,7 +223,7 @@ public class SP implements EventHandler<ActionEvent> {
 		
 		grid.add(redOccu, 0, 3);
 		grid.add(blueOccu, 6, 3);
-//		grid.setGridLinesVisible(true);// TODO: remove after debug
+//		grid.setGridLinesVisible(true);// removed after debug
 		return grid;
 	}
 

@@ -40,10 +40,12 @@ public class WoW extends Application {
 //			mainMenu(primaryStage);
 		int[][] params={
 				{100,5,2000},
-				{5,20,50,50,30},
-				{5,50,50,50,50}};
-		SP sp=new SP(params);
-		sp.handle(null);
+				{10,20,50,50,30},
+				{20,50,50,50,50}};
+//		SP sp=new SP(params);
+//		sp.handle(null);
+		MP mp=new MP(params);
+		mp.handle(null);
 	}
 
 	private void config() {
@@ -178,6 +180,7 @@ public class WoW extends Application {
 
 		Scene scene = new Scene(layout, 300, 250);
 		primaryStage.setScene(scene);
+		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
 
