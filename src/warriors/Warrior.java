@@ -1,4 +1,6 @@
 package warriors;
+import java.io.Serializable;
+
 import world.Team;
 /**
  * This parent class models a warrior. Instantiating directly from this class is discouraged.
@@ -14,7 +16,11 @@ import world.Team;
  * @author  Kyle Lei
  * @version  1.2.0
  */
-public abstract class Warrior {
+public abstract class Warrior implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public int ID;
 	protected int HP;
 	protected int attackV;

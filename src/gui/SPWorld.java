@@ -182,4 +182,12 @@ public class SPWorld extends World {
 		}
 		changeFlag(cityIndex, Team.none);
 	}
+	protected void report() {
+//		System.out.println(clock + " " + hq[0]);
+//		System.out.println(clock + " " + hq[1]);
+	}
+	protected void announceLE(Warrior w, int LE) {
+//		if (LE != 0)
+//			System.out.println(clock + " " + w + " earned " + LE + " elements for his headquarter");
+	}
 }

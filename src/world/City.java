@@ -1,5 +1,6 @@
 package world;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 import warriors.Warrior;
@@ -14,9 +15,13 @@ import warriors.Warrior;
  * <li>life elements stored in the city, an {@code int}</li>
  * </ol>
  * @author Kyle Lei
- * @version 1.0.0
+ * @version 1.1.0
  */
-public class City {
+public class City implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public LinkedList<Warrior> warriorInCity;
 	public Team flag=Team.none;
 	public Team lastKillerTeam=Team.none;

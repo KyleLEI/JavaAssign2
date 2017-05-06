@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.NoSuchElementException;
 
 import javafx.application.Platform;
@@ -15,6 +16,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -46,12 +49,13 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 	private MPWorld world;
 	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
 	BooleanProperty shouldUpdateRed = new SimpleBooleanProperty(false);
+	BooleanProperty disconnected = new SimpleBooleanProperty(false);
 
 	MPServer(int[][] param, String hostIP) {
-		super(param,false);
+		super(param, false);
 		world = new MPWorld(param);
 		this.hostIP = hostIP;
-		
+
 		connectUI = new Stage();
 		connectUI.setTitle("Multiplayer Server");
 		connectUI.setScene(new Scene(initConnectUI(), 500, 220));
@@ -62,15 +66,40 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 
 		gameUI = new Stage();
 		gameUI.setTitle("Multiplayer");
-		gameUI.setOnCloseRequest(e -> System.exit(0));
+		gameUI.setOnCloseRequest(e -> {
+			try {
+				out.writeInt(Def.serverShutdown);
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			} finally {
+				System.exit(0);
+			}
+		});
 		gameUI.setScene(new Scene(initGameUI(), 1000, 600));
 		gameUI.setResizable(false);
-		
+
 		world.hq[0].lifeElements.addListener((a, b, c) -> {
 			LE.setText("Life Elements: " + world.getPlayerLE());
 		});
+		world.hq[1].lifeElements.addListener((a, b, c) -> {
+			// send LE to client
+			try {
+				out.writeInt(Def.updateLE);
+				out.writeInt(c.intValue());
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
+
+		});
 		world.clock.minute.addListener((a, b, c) -> {
 			time.setText(world.clock.toString());
+			// send time to client
+			try {
+				out.writeInt(Def.updateTime);
+				out.writeUTF(world.clock.toString());
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
 		});
 		world.end.addListener((a, b, c) -> {
 			if (world.redHQOccupierCount.get() == 2) {
@@ -82,8 +111,15 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 				return;
 			}
 			spawnMsg.setText("It's a\nDraw!");
+			// send end message to client
+			try {
+				out.writeInt(Def.updateEnd);
+				out.writeUTF(spawnMsg.getText());
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
 		});
-		shouldUpdateBlue.addListener((o, ov, c) -> {
+		shouldUpdateBlue.addListener((o, ov, c) -> {// don't need to send
 			if (c == true) {
 				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
 				world.shouldUpdateBlue.set(false);
@@ -93,25 +129,57 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			if (c == true) {
 				displayWarrior(world.hq[0].warriorInHQ.getFirst(), 0);
 				world.shouldUpdateBlue.set(false);
+				// send spawned warrior to client
+				try {
+					out.writeInt(Def.updateRedSpawn);
+					out.writeObject(world.hq[0].warriorInHQ.getFirst());
+				} catch (IOException e1) {
+					Platform.runLater(new IOPrompt(e1));
+				}
 			}
 		});
 		world.shouldUpdateMap.addListener((a, b, c) -> {
 			if (c == true) {
 				updateMap();
 				world.shouldUpdateMap.set(false);
+				try {
+					out.writeInt(Def.updateMap);
+					out.writeObject(world.cities);
+				} catch (IOException e1) {
+					Platform.runLater(new IOPrompt(e1));
+				}
 			}
 		});
 		world.shouldUpdateFlag.addListener((a, b, c) -> {
 			if (c == true) {
 				updateFlag();
 				world.shouldUpdateFlag.set(false);
+				try {
+					out.writeInt(Def.updateFlag);
+					out.writeInt(world.cityToUpdate);
+					out.writeObject(world.flagToUpdate);
+				} catch (IOException e1) {
+					Platform.runLater(new IOPrompt(e1));
+				}
 			}
 		});
 		world.redHQOccupierCount.addListener((a, b, c) -> {
 			redOccu.setText("   " + c);
+			try {
+				out.writeInt(Def.updateRedOccu);
+				out.writeInt(c.intValue());
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
 		});
 		world.blueHQOccupierCount.addListener((a, b, c) -> {
 			blueOccu.setText("   " + c);
+			try {
+				out.writeInt(Def.updateBlueOccu);
+				out.writeInt(c.intValue());
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
 		});
 	}
 
@@ -273,20 +341,26 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			Platform.runLater(() -> connectUI.show());
 			try {
 				ServerSocket serverSocket = new ServerSocket(Def.portNo);
-				// Socket socket = serverSocket.accept();
-				// in = new ObjectInputStream(socket.getInputStream());
-				// out = new ObjectOutputStream(socket.getOutputStream());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				Socket socket = serverSocket.accept();
+				connectMsg.setText("Client connected");
+				out = new ObjectOutputStream(socket.getOutputStream());
+				connectMsg.setText("Output Stream Generated");
+				out.flush();
+				in = new ObjectInputStream(socket.getInputStream());
+				connectMsg.setText("Input Stream Generated");
+				connectMsg.setText("Launching...");
+				// try {
+				// Thread.sleep(1000);
+				// } catch (InterruptedException e) {
+				// e.printStackTrace();
+				// }
 				Platform.runLater(() -> {// TA so smart, calling Platform to use
 											// JavaFX thread
 					connectUI.close();
 					new Thread(world).start();
 					gameUI.show();// starts game
 				});
+				// TODO: add message sender/receiver(decoder) here
 			} catch (IOException e) {
 				connectMsg.setText(e.getMessage() + ". Please retry.");
 				connectMsg.setFill(Color.RED);
@@ -405,9 +479,23 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 
 		}
 	}
-	void cleanMap(int cityIndex) {
-		((ImageView) slots[cityIndex].getChildren().get(0)).setImage(null);
-		((ImageView) slots[cityIndex].getChildren().get(1)).setImage(null);
+
+	class IOPrompt implements Runnable {
+		IOException e1;
+
+		IOPrompt(IOException e) {
+			e1 = e;
+		}
+
+		@Override
+		public void run() {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("Connection Error");
+			alert.setContentText(e1.getMessage());
+			alert.showAndWait();
+		}
+
 	}
 
 	void updateMap() {

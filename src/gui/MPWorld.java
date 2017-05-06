@@ -93,7 +93,8 @@ public class MPWorld extends SPWorld {
 				spawn();
 				break;
 			case 10:
-				haveSpawnedThisRound = false;
+				redHaveSpawnedThisRound = false;
+				blueHaveSpawnedThisRound = false;
 				move();
 				break;
 			case 20:

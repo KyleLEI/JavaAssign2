@@ -19,14 +19,15 @@ public interface Def {
 	
 	/*---To Client---*/
 	final int serverShutdown=-1;
-	final int updateTime=0;
-	final int updateEnd=1;
-	final int updateRedSpawn=2;
-	final int updateMap=3;
-	final int updateFlag=4;
-	final int updateRedOccu=5;
-	final int updateBlueOccu=6;
-	final int spawnResponse=7;
+	final int updateLE=0;//int
+	final int updateTime=1;//UTF
+	final int updateEnd=2;//UTF, update end
+	final int updateRedSpawn=3;//Warrior
+	final int updateMap=4;//City[]
+	final int updateFlag=5;//int city, Team flag
+	final int updateRedOccu=6;//int
+	final int updateBlueOccu=7;//int
+	final int spawnResponse=8;//int
 	
 	/*---To Server---*/
 	final int clientDisconnect=-1;
