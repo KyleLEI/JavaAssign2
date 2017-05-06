@@ -171,11 +171,12 @@ public class WoW extends Application {
 
 		Button SP = new Button();
 		SP.setText("Singleplayer");
-		SP.setOnAction(new SP(param));
+		SP.setOnAction(new SP(param,true));
 		layout.getChildren().add(SP);
 
 		Button MP = new Button();
 		MP.setText("Multiplayer");
+		MP.setOnAction(new MP(param));
 		layout.getChildren().add(MP);
 
 		Scene scene = new Scene(layout, 300, 250);

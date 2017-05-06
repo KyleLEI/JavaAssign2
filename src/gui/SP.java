@@ -1,5 +1,7 @@
 package gui;
 
+import java.util.NoSuchElementException;
+
 import Images.ImagesLoader;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -34,25 +36,30 @@ import world.WarriorType.type;
 public class SP implements EventHandler<ActionEvent> {
 	private int[][] m_param;
 	private SPWorld world;
-	private Text time;
-	private Text LE;
-	private Text spawnMsg;
-	private HBox[] slots;
-	private ImageView[] flags;
-	private ImagesLoader imgs = new ImagesLoader();
-	private ImageView thumbnail;
-	private Text[] propertyV = new Text[8];
-	private Text redOccu;
-	private Text blueOccu;
+	private boolean useEmbeddedWorld;
+	protected Text time;
+	protected Text LE;
+	protected Text spawnMsg;
+	protected HBox[] slots;
+	protected ImageView[] flags;
+	protected ImagesLoader imgs = new ImagesLoader();
+	protected ImageView thumbnail;
+	protected Text[] propertyV = new Text[8];
+	protected Text redOccu;
+	protected Text blueOccu;
 
-	SP(int param[][]) {
+	SP(int param[][], boolean useEmbeddedWorld) {
 		m_param = param;
+		this.useEmbeddedWorld = useEmbeddedWorld;
 	}
 
 	@Override
 	public void handle(ActionEvent event) {
-		((Stage)(((Node) event.getSource()).getScene().getWindow())).close();
-		world = new SPWorld(m_param);
+		((Stage) (((Node) event.getSource()).getScene().getWindow())).close();// close
+																				// main
+																				// menu
+		if (useEmbeddedWorld)
+			world = new SPWorld(m_param);
 		world.hq[0].lifeElements.addListener((a, b, c) -> {
 			LE.setText("Life Elements: " + world.getPlayerLE());
 		});
@@ -88,24 +95,24 @@ public class SP implements EventHandler<ActionEvent> {
 				world.shouldUpdateFlag.set(false);
 			}
 		});
-		world.redHQOccupierCount.addListener((a,b,c)->{
-			redOccu.setText("   "+c);
+		world.redHQOccupierCount.addListener((a, b, c) -> {
+			redOccu.setText("   " + c);
 		});
-		world.blueHQOccupierCount.addListener((a,b,c)->{
-			blueOccu.setText("   "+c);
+		world.blueHQOccupierCount.addListener((a, b, c) -> {
+			blueOccu.setText("   " + c);
 		});
-		
+
 		Thread logic = new Thread(world);
 		Stage stage = new Stage();
 		stage.setTitle("Singleplayer");
-		stage.setOnCloseRequest(e -> world.task_should_exit = true);
+		stage.setOnCloseRequest(e -> System.exit(0));
 		stage.setScene(new Scene(initUI(), 1000, 600));
+		stage.setResizable(false);
 		stage.show();
 		logic.start(); // since UI takes time to load, start logic after UI
-
 	}
 
-	private BorderPane initUI() {
+	protected BorderPane initUI() {
 		BorderPane ret = new BorderPane();
 		ret.setTop(configTop());
 		ret.setRight(configRight());
@@ -214,20 +221,20 @@ public class SP implements EventHandler<ActionEvent> {
 			grid.add(slots[i], i, 2);
 		}
 
-		redOccu=new Text("   "+0);
+		redOccu = new Text("   " + 0);
 		redOccu.setFill(Color.BLUE);
 		redOccu.setFont(new Font(Def.font, 16));
-		blueOccu=new Text("   "+0);
+		blueOccu = new Text("   " + 0);
 		blueOccu.setFill(Color.RED);
 		blueOccu.setFont(new Font(Def.font, 16));
-		
+
 		grid.add(redOccu, 0, 3);
 		grid.add(blueOccu, 6, 3);
-//		grid.setGridLinesVisible(true);// removed after debug
+		// grid.setGridLinesVisible(true);// removed after debug
 		return grid;
 	}
 
-	private HBox configBottom() {
+	protected HBox configBottom() {
 		HBox ret = new HBox(20);
 		ret.setStyle("-fx-background-color: F0F8FF;");
 		ret.setPadding(new Insets(15, 12, 15, 12));
@@ -359,20 +366,24 @@ public class SP implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(MouseEvent event) {
-			if (city == 0) {
-				updateDetails(world.hq[0].warriorInHQ.getFirst());
-				displayWarrior(world.hq[0].warriorInHQ.getFirst(),thumbnail);
-				return;
+			try {
+				if (city == 0) {
+					updateDetails(world.hq[0].warriorInHQ.getFirst());
+					displayWarrior(world.hq[0].warriorInHQ.getFirst(), thumbnail);
+					return;
+				}
+				if (city == 6) {
+					updateDetails(world.hq[1].warriorInHQ.getFirst());
+					displayWarrior(world.hq[1].warriorInHQ.getFirst(), thumbnail);
+					return;
+				}
+				updateDetails(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
+						: world.cities[city - 1].warriorInCity.getLast());
+				displayWarrior(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
+						: world.cities[city - 1].warriorInCity.getLast(), thumbnail);
+			} catch (NoSuchElementException e) {
+				System.out.println("the list is empty, but I don't care");
 			}
-			if (city == 6) {
-				updateDetails(world.hq[1].warriorInHQ.getFirst());
-				displayWarrior(world.hq[1].warriorInHQ.getFirst(),thumbnail);
-				return;
-			}
-			updateDetails(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
-					: world.cities[city - 1].warriorInCity.getLast());
-			displayWarrior(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
-					: world.cities[city - 1].warriorInCity.getLast(),thumbnail);
 		}
 
 		private void updateDetails(Warrior w) {
