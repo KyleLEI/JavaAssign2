@@ -16,6 +16,10 @@ import world.Team;
  */
 public class Wolf extends Warrior{
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8528609098766816115L;
+	/**
 	 * Creates a wolf warrior with the specified ID, HP, and attack.
 	 *
 	 * @param inID  the ID of the wolf.

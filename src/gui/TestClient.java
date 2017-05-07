@@ -18,7 +18,6 @@ public class TestClient{
 			System.out.println("Input Stream Generated");
 			ObjectOutputStream out=new ObjectOutputStream(socket.getOutputStream());
 			System.out.println("Output Stream Generated");
-			out.flush();//why?
 			for(;;){
 				decode(in.readInt());
 			}
@@ -46,7 +45,15 @@ public class TestClient{
 			System.out.println((Warrior)in.readObject());
 			break;
 		case Def.updateMap://City[]
-			in.readObject();
+			System.out.println("Start receiving map");
+			for(int i=0;i<10;i++){
+				Warrior w= (Warrior) in.readObject();
+//				if(w!=null){
+//					System.out.println(w.getSteps());
+//					System.out.println(w.getAttackV());
+//					System.out.println(w.getHP());
+//				}
+			}
 			System.out.println("Map received");
 			break;
 		case Def.updateFlag://int city, Team flag

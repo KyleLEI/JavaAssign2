@@ -33,6 +33,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import warriors.Warrior;
+import world.City;
 import world.Team;
 import world.WarriorType;
 import world.WarriorType.type;
@@ -86,6 +87,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			try {
 				out.writeInt(Def.updateLE);
 				out.writeInt(c.intValue());
+				out.flush();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			}
@@ -97,6 +99,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			try {
 				out.writeInt(Def.updateTime);
 				out.writeUTF(world.clock.toString());
+				out.flush();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			}
@@ -115,6 +118,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			try {
 				out.writeInt(Def.updateEnd);
 				out.writeUTF(spawnMsg.getText());
+				out.flush();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			}
@@ -128,26 +132,45 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		shouldUpdateRed.addListener((o, ov, c) -> {
 			if (c == true) {
 				displayWarrior(world.hq[0].warriorInHQ.getFirst(), 0);
-				world.shouldUpdateBlue.set(false);
+				shouldUpdateRed.set(false);
 				// send spawned warrior to client
 				try {
 					out.writeInt(Def.updateRedSpawn);
 					out.writeObject(world.hq[0].warriorInHQ.getFirst());
+					out.flush();
 				} catch (IOException e1) {
 					Platform.runLater(new IOPrompt(e1));
 				}
 			}
 		});
-		world.shouldUpdateMap.addListener((a, b, c) -> {
+		world.shouldUpdateMap.addListener((a, b, c) -> {//10 warriors
 			if (c == true) {
 				updateMap();
-				world.shouldUpdateMap.set(false);
 				try {
+					out.reset();//cache messes things up here
 					out.writeInt(Def.updateMap);
-					out.writeObject(world.cities);
+					for(int i=0;i<5;++i){
+						if(world.cities[i].warriorInCity.isEmpty()){
+							out.writeObject(null);
+							out.flush();
+							out.writeObject(null);
+							out.flush();
+							continue;
+						}
+						Warrior wa1=world.cities[i].warriorInCity.getFirst();
+						Warrior wa2=world.cities[i].warriorInCity.getLast();
+						out.writeObject(wa1.getTeam()==Team.red?wa1:null);//TODO: things wrong here
+				
+						out.writeObject(wa2.getTeam()==Team.blue?wa2:null);
+						
+					}
+//					out.flush();
+					System.out.println("sent all warriors");
 				} catch (IOException e1) {
 					Platform.runLater(new IOPrompt(e1));
+//					e1.printStackTrace();
 				}
+				world.shouldUpdateMap.set(false);
 			}
 		});
 		world.shouldUpdateFlag.addListener((a, b, c) -> {
@@ -158,6 +181,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 					out.writeInt(Def.updateFlag);
 					out.writeInt(world.cityToUpdate);
 					out.writeObject(world.flagToUpdate);
+					out.flush();
 				} catch (IOException e1) {
 					Platform.runLater(new IOPrompt(e1));
 				}
@@ -168,6 +192,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			try {
 				out.writeInt(Def.updateRedOccu);
 				out.writeInt(c.intValue());
+				out.flush();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			}
@@ -177,6 +202,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			try {
 				out.writeInt(Def.updateBlueOccu);
 				out.writeInt(c.intValue());
+				out.flush();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			}
@@ -187,6 +213,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 	public synchronized void handle(ActionEvent event) {
 		((Stage) (((Node) event.getSource()).getScene().getWindow())).close();
 		new Thread(new acceptConnection()).start();
+		//keep JavaFX thread running normally
 	}
 
 	private VBox initConnectUI() {
@@ -284,7 +311,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		return grid;
 	}
 
-	protected BorderPane initGameUI() {
+	private BorderPane initGameUI() {
 		BorderPane ret = new BorderPane();
 		ret.setTop(configTop());
 		ret.setRight(configRight());
@@ -349,14 +376,19 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 				in = new ObjectInputStream(socket.getInputStream());
 				connectMsg.setText("Input Stream Generated");
 				connectMsg.setText("Launching...");
-				// try {
-				// Thread.sleep(1000);
-				// } catch (InterruptedException e) {
-				// e.printStackTrace();
-				// }
 				Platform.runLater(() -> {// TA so smart, calling Platform to use
 											// JavaFX thread
 					connectUI.close();
+					// send initial LE & time to client
+					try {
+						out.writeInt(Def.updateLE);
+						out.writeInt(world.hq[1].lifeElements.get());
+						out.writeInt(Def.updateTime);
+						out.writeUTF(world.clock.toString());
+						out.flush();
+					} catch (IOException e1) {
+						Platform.runLater(new IOPrompt(e1));
+					}
 					new Thread(world).start();
 					gameUI.show();// starts game
 				});
@@ -494,6 +526,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 			alert.setHeaderText("Connection Error");
 			alert.setContentText(e1.getMessage());
 			alert.showAndWait();
+			System.exit(1);
 		}
 
 	}

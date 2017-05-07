@@ -9,6 +9,11 @@ import world.Team;
  */
 public class Ninja extends Warrior {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3634733821543780118L;
+
+	/**
 	 * Creates a ninja warrior with the specified ID, HP, and attack.
 	 *
 	 * @param inID  the ID of the ninja.

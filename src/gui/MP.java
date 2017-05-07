@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -51,16 +52,16 @@ public class MP implements EventHandler<ActionEvent> {
 		ret.add(yourIP, 0, 2);
 
 		String myIP=null;
-		try {//TODO: add back after debug
-			myIP=InetAddress.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e) {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Error");
-			alert.setHeaderText("IP Address Error");
-			alert.setContentText("Unable to obtain local IP address. Please check your network configuration.");
-			alert.showAndWait();
-		}
-//		myIP="192.168.254.254";
+//		try {//TODO: add back after debug
+//			myIP=InetAddress.getLocalHost().getHostAddress();
+//		} catch (UnknownHostException e) {
+//			Alert alert = new Alert(AlertType.ERROR);
+//			alert.setTitle("Error");
+//			alert.setHeaderText("IP Address Error");
+//			alert.setContentText("Unable to obtain local IP address. Please check your network configuration.");
+//			alert.showAndWait();
+//		}
+		myIP="192.168.254.254";
 		Text IP = new Text(myIP);
 		IP.setFont(Font.font(Def.font,16));
 		ret.add(IP, 1,2);
@@ -80,7 +81,10 @@ public class MP implements EventHandler<ActionEvent> {
 		
 		Button join=new Button("Join Game");
 		join.setPrefSize(100, 20);
-		join.setOnAction(new MPClient());
+		join.setOnAction((e)->{
+			((Stage) (((Node) e.getSource()).getScene().getWindow())).close();
+			new MPClient(m_param).handle(tf.getText());;
+		});
 		ret.add(join, 2, 3);
 		return ret;
 	}

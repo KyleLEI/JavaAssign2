@@ -58,49 +58,50 @@ public class SP implements EventHandler<ActionEvent> {
 		((Stage) (((Node) event.getSource()).getScene().getWindow())).close();// close
 																				// main
 																				// menu
-		if (useEmbeddedWorld)
+		if (useEmbeddedWorld) {
 			world = new SPWorld(m_param);
-		world.hq[0].lifeElements.addListener((a, b, c) -> {
-			LE.setText("Life Elements: " + world.getPlayerLE());
-		});
-		world.clock.minute.addListener((a, b, c) -> {
-			time.setText(world.clock.toString());
-		});
-		world.end.addListener((a, b, c) -> {
-			if (world.redHQOccupierCount.get() == 2) {
-				spawnMsg.setText("Blue\nVictory!");
-				return;
-			}
-			if (world.blueHQOccupierCount.get() == 2) {
-				spawnMsg.setText("Red\nVictory!");
-				return;
-			}
-			spawnMsg.setText("It's a\nDraw!");
-		});
-		world.shouldUpdateBlue.addListener((o, ov, c) -> {
-			if (c == true) {
-				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
-				world.shouldUpdateBlue.set(false);
-			}
-		});
-		world.shouldUpdateMap.addListener((a, b, c) -> {
-			if (c == true) {
-				updateMap();
-				world.shouldUpdateMap.set(false);
-			}
-		});
-		world.shouldUpdateFlag.addListener((a, b, c) -> {
-			if (c == true) {
-				updateFlag();
-				world.shouldUpdateFlag.set(false);
-			}
-		});
-		world.redHQOccupierCount.addListener((a, b, c) -> {
-			redOccu.setText("   " + c);
-		});
-		world.blueHQOccupierCount.addListener((a, b, c) -> {
-			blueOccu.setText("   " + c);
-		});
+			world.hq[0].lifeElements.addListener((a, b, c) -> {
+				LE.setText("Life Elements: " + world.getPlayerLE());
+			});
+			world.clock.minute.addListener((a, b, c) -> {
+				time.setText(world.clock.toString());
+			});
+			world.end.addListener((a, b, c) -> {
+				if (world.redHQOccupierCount.get() == 2) {
+					spawnMsg.setText("Blue\nVictory!");
+					return;
+				}
+				if (world.blueHQOccupierCount.get() == 2) {
+					spawnMsg.setText("Red\nVictory!");
+					return;
+				}
+				spawnMsg.setText("It's a\nDraw!");
+			});
+			world.shouldUpdateBlue.addListener((o, ov, c) -> {
+				if (c == true) {
+					displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
+					world.shouldUpdateBlue.set(false);
+				}
+			});
+			world.shouldUpdateMap.addListener((a, b, c) -> {
+				if (c == true) {
+					updateMap();
+					world.shouldUpdateMap.set(false);
+				}
+			});
+			world.shouldUpdateFlag.addListener((a, b, c) -> {
+				if (c == true) {
+					updateFlag();
+					world.shouldUpdateFlag.set(false);
+				}
+			});
+			world.redHQOccupierCount.addListener((a, b, c) -> {
+				redOccu.setText("   " + c);
+			});
+			world.blueHQOccupierCount.addListener((a, b, c) -> {
+				blueOccu.setText("   " + c);
+			});
+		}
 
 		Thread logic = new Thread(world);
 		Stage stage = new Stage();

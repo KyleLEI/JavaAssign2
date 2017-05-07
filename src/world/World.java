@@ -35,7 +35,7 @@ public class World implements Runnable{
 	protected int T;
 	protected int[] HP;
 	protected int[] attack;
-	public City[] cities;
+	volatile public City[] cities;
 	public Headquarter[] hq;
 	protected WarriorType type;
 	public IntegerProperty redHQOccupierCount = new SimpleIntegerProperty(0);

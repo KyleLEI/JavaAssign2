@@ -12,6 +12,11 @@ import world.Team;
  */
 public class Iceman extends Warrior {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 288163379262306339L;
+
+	/**
 	 * Creates a iceman warrior with the specified ID, HP, and attack.
 	 *
 	 * @param inID  the ID of the iceman.

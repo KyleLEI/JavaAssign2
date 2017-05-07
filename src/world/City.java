@@ -17,11 +17,7 @@ import warriors.Warrior;
  * @author Kyle Lei
  * @version 1.1.0
  */
-public class City implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class City{
 	public LinkedList<Warrior> warriorInCity;
 	public Team flag=Team.none;
 	public Team lastKillerTeam=Team.none;

@@ -10,6 +10,10 @@ import world.Team;
  */
 public class Lion extends Warrior{
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5269651888102828532L;
+	/**
 	 * Creates a lion warrior with the specified ID, HP, and attack.
 	 *
 	 * @param inID  the ID of the lion.

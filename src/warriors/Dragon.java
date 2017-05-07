@@ -10,6 +10,11 @@ import world.Team;
  */
 public class Dragon extends Warrior {
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5660455286381619566L;
+
+	/**
 	 * Creates a dragon warrior with the specified ID, HP, and attack.
 	 *
 	 * @param inID  the ID of the dragon.
