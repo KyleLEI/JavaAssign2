@@ -1,0 +1,31 @@
+This project is designed to simulate a World of Warcraft game, with a graphical user interface for interaction in singleplayer mode or multiplayer mode using JavaFX.
+
+**************
+General Design
+**************
+The project consists of 4 packages. The first two packages, warriors and world, used for the underlying logic of the game, are mostly inherited from the previous assignment, with minor changes in types to facilitate GUI implementation.
+
+The Images package stores the images used in the GUI. It also comes with an ImagesLoader class to initialize the images so that it could be used by other JavaFX classes.
+
+The GUI package holds the majority of code written for this assignment. Starting with class WoW, the entry point of the GUI. It takes in the parameters input and offers buttons to display assignment1 or launch the game in interactive mode.
+
+Class SP and SPWorld are for singleplayer. SP is responsible for the GUI whereas SPWorld handles the core game logic. SP implements the ActionEvent interface itself, enabling an easier way to launch the game at the push of a button. SPWorld is inherited from class World in assignment1, but with several functions overridden, to move from outputting to stdout to outputting to the GUI.
+
+Class MP, MPClient, MPServer are for multiplayer. MP can allow the player to choose whether to be the client or the server, while MPClient MPServer handles both the network connection, and the GUI output. It is worth noting that MPClient and MPServer are derived from SP, due to similarities in code.
+
+Class MPWorld is inherited from SPWorld, with function overrides to prevent automatic spawning.
+
+**************
+Multithreading
+**************
+Multithreading is essential in this project. Running game logic underneath the GUI, exchanging information between the server and the client while displaying the game both requires multithreading. In my implementation, multithreading is mostly achieved by implementing the Runnable interface, sometimes using lambda expression, and then calling Thread::start. After checking TA’s code in lab11, I realized Platform::runLater offers better multithreading support in JavaFX since the Runnable will run on a JavaFX thread, enabling it to modify the GUI. Thus such kind of multithreading is also included in my project.
+
+Two types of inter-thread messaging is present in my project. One is by exploiting the listener of SimpleBooleanProperty. Whenever GUI needs updating, a ChangeEvent will be fired from the game logic thread, and the listener is called to handle the change. This is similar to using Callback Functions in embedded system programming. Other GUI listeners in my project are similar to this.
+
+The other type is for multiplayer. A dedicated networking thread listens on the port constantly and handles incoming messages. It first decides the message type by identifying the header integer, then a switch statement follows to decide what to read next. 
+
+*******
+Summary
+*******
+This project utilized event-driven programming in JavaFX and multithreading for the GUI, network programming for the multiplayer mode. Basic concepts such as inheritance and overriding reduced the code redundancy, improving the consistency.
+
