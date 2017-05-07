@@ -68,16 +68,9 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 															// accept
 
 		gameUI = new Stage();
-		gameUI.setTitle("Multiplayer");
+		gameUI.setTitle("Multiplayer - Red");
 		gameUI.setOnCloseRequest(e -> {
-			try {
-				out.close();
-				in.close();
-			} catch (IOException e1) {
-				Platform.runLater(new IOPrompt(e1));
-			} finally {
-				System.exit(0);
-			}
+			System.exit(0);
 		});
 		gameUI.setScene(new Scene(initGameUI(), 1000, 600));
 		gameUI.setResizable(false);
@@ -520,7 +513,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 						: world.cities[city - 1].warriorInCity.getLast());
 				displayWarrior(t == 0 ? world.cities[city - 1].warriorInCity.getFirst()
 						: world.cities[city - 1].warriorInCity.getLast(), thumbnail);
-			} catch (NoSuchElementException e) {
+			} catch (Exception e) {
 				System.out.println("the list is empty, but I don't care");
 			}
 		}
@@ -555,12 +548,8 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		}
 
 		@Override
-		public void run() {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Error");
-			alert.setHeaderText("Connection Error");
-			alert.setContentText(e1.getMessage());
-			alert.showAndWait();
+		public void run() { 
+			System.out.println("World of Warcraft Connection Interrupted: "+e1.getMessage()+". Aborting...");
 			System.exit(1);
 		}
 

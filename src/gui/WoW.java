@@ -35,17 +35,17 @@ public class WoW extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-//		config();
-//		if (isConfigured)
-//			mainMenu(primaryStage);
-		int[][] params={
-				{100,5,2000},
-				{10,20,50,50,30},
-				{20,50,50,50,50}};
+		config();
+		if (isConfigured)
+			mainMenu(primaryStage);
+//		int[][] params={
+//				{100,5,2000},
+//				{10,20,50,50,30},
+//				{20,50,50,50,50}};
 //		SP sp=new SP(params);
 //		sp.handle(null);
-		MP mp=new MP(params);
-		mp.handle(null);
+//		MP mp=new MP(params);
+//		mp.handle(null);
 	}
 
 	private void config() {
@@ -146,6 +146,7 @@ public class WoW extends Application {
 
 	private void mainMenu(Stage primaryStage) {
 		primaryStage.setTitle("Launcher");
+		primaryStage.setOnCloseRequest((e)->System.exit(0));
 		TilePane layout = new TilePane();
 		layout.setAlignment(Pos.CENTER);
 		layout.setHgap(10);

@@ -33,7 +33,7 @@ public class MP implements EventHandler<ActionEvent> {
 		stage.setTitle("Multiplayer");
 		stage.setScene(new Scene(initConnectUI(), 500, 220));
 		stage.setResizable(false);
-//		((Stage)(((Node) event.getSource()).getScene().getWindow())).close();//TODO: uncomment after debug
+		((Stage)(((Node) event.getSource()).getScene().getWindow())).close();
 		stage.show();
 	}
 
@@ -52,16 +52,16 @@ public class MP implements EventHandler<ActionEvent> {
 		ret.add(yourIP, 0, 2);
 
 		String myIP=null;
-//		try {//TODO: add back after debug
-//			myIP=InetAddress.getLocalHost().getHostAddress();
-//		} catch (UnknownHostException e) {
-//			Alert alert = new Alert(AlertType.ERROR);
-//			alert.setTitle("Error");
-//			alert.setHeaderText("IP Address Error");
-//			alert.setContentText("Unable to obtain local IP address. Please check your network configuration.");
-//			alert.showAndWait();
-//		}
-		myIP="192.168.254.254";
+		try {
+			myIP=InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("IP Address Error");
+			alert.setContentText("Unable to obtain local IP address. Please check your network configuration.");
+			alert.showAndWait();
+		}
+//		myIP="192.168.254.254";
 		Text IP = new Text(myIP);
 		IP.setFont(Font.font(Def.font,16));
 		ret.add(IP, 1,2);

@@ -5,14 +5,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import gui.MPServer.IOPrompt;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -30,7 +27,6 @@ import javafx.stage.Stage;
 import warriors.Warrior;
 import world.Team;
 import world.WarriorType;
-import world.WarriorType.type;
 
 public class MPClient extends SP {
 	private ObjectInputStream in;
@@ -55,16 +51,16 @@ public class MPClient extends SP {
 		connectUI.setOnCloseRequest(e -> System.exit(0));
 
 		gameUI = new Stage();
-		gameUI.setTitle("Multiplayer");
+		gameUI.setTitle("Multiplayer - Blue");
 		gameUI.setOnCloseRequest(e -> {
-			try {
-				in.close();
-				out.close();
-			} catch (IOException e1) {
-				Platform.runLater(new IOPrompt(e1));
-			} finally {
-				System.exit(0);
-			}
+			// try {
+			// in.close();
+			// out.close();
+			// } catch (IOException e1) {
+			// Platform.runLater(new IOPrompt(e1));
+			// } finally {
+			System.exit(0);
+			// }
 		});
 		gameUI.setScene(new Scene(initGameUI(), 1000, 600));
 		gameUI.setResizable(false);
@@ -115,7 +111,6 @@ public class MPClient extends SP {
 			time.setText(in.readUTF());
 			break;
 		case Def.updateEnd:// UTF, update end
-			System.out.println("Should end now");
 			this.end = true;
 			spawnMsg.setText(in.readUTF());
 			break;
@@ -296,7 +291,7 @@ public class MPClient extends SP {
 
 		spawnMsg = new Text();
 		spawnMsg.setFont(new Font(Def.font, 18));
-		spawnMsg.setFill(Color.CRIMSON);
+		spawnMsg.setFill(Color.BLUE);
 		spawnMsg.setTextAlignment(TextAlignment.JUSTIFY);
 		flow.getChildren().add(spawnMsg);
 		return flow;
@@ -339,11 +334,7 @@ public class MPClient extends SP {
 
 		@Override
 		public void run() {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Error");
-			alert.setHeaderText("Connection Error");
-			alert.setContentText(e1.getMessage());
-			alert.showAndWait();
+			System.out.println("World of Warcraft Connection Interrupted: " + e1.getMessage() + ". Aborting...");
 			System.exit(1);
 		}
 
@@ -383,8 +374,12 @@ public class MPClient extends SP {
 				displayWarrior(blueSpawn, thumbnail);
 				return;
 			}
-			updateDetails(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1]);
-			displayWarrior(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1], thumbnail);
+			try {
+				updateDetails(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1]);
+				displayWarrior(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1], thumbnail);
+			} catch (Exception e) {
+				System.out.println("the slot is empty, but I don't care");
+			}
 
 		}
 
