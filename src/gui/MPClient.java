@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import gui.MPServer.IOPrompt;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -57,7 +58,8 @@ public class MPClient extends SP {
 		gameUI.setTitle("Multiplayer");
 		gameUI.setOnCloseRequest(e -> {
 			try {
-				out.writeInt(Def.serverShutdown);
+				in.close();
+				out.close();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			} finally {
@@ -106,12 +108,8 @@ public class MPClient extends SP {
 
 	private void decode(int header) throws IOException, ClassNotFoundException {
 		switch (header) {
-		case Def.serverShutdown:
-			System.out.println("Server shutdown");
-			System.exit(0);
-			break;
 		case Def.updateLE:// int
-			LE.setText("Life Element: "+in.readInt());
+			LE.setText("Life Element: " + in.readInt());
 			break;
 		case Def.updateTime:// UTF
 			time.setText(in.readUTF());
@@ -124,10 +122,14 @@ public class MPClient extends SP {
 			redSpawn = (Warrior) in.readObject();
 			displayWarrior(redSpawn, 0);
 			break;
-		case Def.updateMap:// 
-			for(int i=0;i<5;i++){
-				warriors[2*i]=(Warrior) in.readObject();
-				warriors[2*i+1]=(Warrior) in.readObject();
+		case Def.updateBlueSpawn:// Warrior
+			blueSpawn = (Warrior) in.readObject();
+			displayWarrior(blueSpawn, 6);
+			break;
+		case Def.updateMap:// 10 warrior
+			for (int i = 0; i < 5; i++) {
+				warriors[2 * i] = (Warrior) in.readObject();
+				warriors[2 * i + 1] = (Warrior) in.readObject();
 			}
 			updateMap();
 			break;
@@ -141,6 +143,49 @@ public class MPClient extends SP {
 			break;
 		case Def.updateBlueOccu:// int
 			blueOccu.setText(String.valueOf(in.readInt()));
+			break;
+		case Def.spawnResponse:
+			switch (in.readInt()) { // handle spawn // results
+			case Def.mSpawnSuccess:
+				// displayWarrior(blueSpawn,6);
+				Thread t = new Thread(() -> {
+					String str = blueSpawn.getClass().getName() + "\nspawned!";
+					spawnMsg.setText(str);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+					if (spawnMsg.getText().equals(str))
+						spawnMsg.setText("");
+				});
+				t.start();
+				break;
+			case Def.mNotEnoughLE:
+				Thread t1 = new Thread(() -> {
+					String str = "not enough\nlife elements";
+					spawnMsg.setText(str);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+					if (spawnMsg.getText().equals(str))
+						spawnMsg.setText("");
+				});
+				t1.start();
+				break;
+			case Def.mNotRightTime:
+				Thread t2 = new Thread(() -> {
+					String str = "cannot\nspawn now";
+					spawnMsg.setText(str);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+					}
+					if (spawnMsg.getText().equals(str))
+						spawnMsg.setText("");
+				});
+				t2.start();
+			}
 		}
 	}
 
@@ -226,27 +271,27 @@ public class MPClient extends SP {
 
 		ImageView spawnDragon = new ImageView();
 		spawnDragon.setImage(imgs.dragon);
-		spawnDragon.setOnMouseClicked(new MPspawnHandler(type.DRAGON));
+		spawnDragon.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
 		flow.getChildren().add(spawnDragon);
 
 		ImageView spawnIceman = new ImageView();
 		spawnIceman.setImage(imgs.iceman);
-		spawnIceman.setOnMouseClicked(new MPspawnHandler(type.ICEMAN));
+		spawnIceman.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.ICEMAN));
 		flow.getChildren().add(spawnIceman);
 
 		ImageView spawnLion = new ImageView();
 		spawnLion.setImage(imgs.lion);
-		spawnLion.setOnMouseClicked(new MPspawnHandler(type.LION));
+		spawnLion.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
 		flow.getChildren().add(spawnLion);
 
 		ImageView spawnWolf = new ImageView();
 		spawnWolf.setImage(imgs.wolf);
-		spawnWolf.setOnMouseClicked(new MPspawnHandler(type.WOLF));
+		spawnWolf.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
 		flow.getChildren().add(spawnWolf);
 
 		ImageView spawnNinja = new ImageView();
 		spawnNinja.setImage(imgs.ninja);
-		spawnNinja.setOnMouseClicked(new MPspawnHandler(type.NINJA));
+		spawnNinja.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
 		flow.getChildren().add(spawnNinja);
 
 		spawnMsg = new Text();
@@ -304,66 +349,15 @@ public class MPClient extends SP {
 
 	}
 
-	private class MPspawnHandler implements EventHandler<MouseEvent> {
-		WarriorType.type requestType;
+	void requestSpawn(WarriorType.type requestType) {
+		try {
+			out.reset();
+			out.writeObject(requestType);
+			out.flush();
 
-		MPspawnHandler(WarriorType.type t) {
-			requestType = t;
+		} catch (IOException e) {
+			Platform.runLater(new IOPrompt(e));
 		}
-
-		@Override
-		public void handle(MouseEvent event) {
-			if (end)
-				return;
-			switch (requestSpawn(requestType)) { // handle spawn
-													// results
-			case Def.mSpawnSuccess:
-				// shouldUpdateRed.set(true);
-				Thread t = new Thread(() -> {
-					String str = requestType + "\nspawned!";
-					spawnMsg.setText(str);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
-					if (spawnMsg.getText().equals(str))
-						spawnMsg.setText("");
-				});
-				t.start();
-				break;
-			case Def.mNotEnoughLE:
-				Thread t1 = new Thread(() -> {
-					String str = "not enough\nlife elements";
-					spawnMsg.setText(str);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
-					if (spawnMsg.getText().equals(str))
-						spawnMsg.setText("");
-				});
-				t1.start();
-				break;
-			case Def.mNotRightTime:
-				Thread t2 = new Thread(() -> {
-					String str = "cannot\nspawn now";
-					spawnMsg.setText(str);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
-					if (spawnMsg.getText().equals(str))
-						spawnMsg.setText("");
-				});
-				t2.start();
-			}
-		}
-
-	}
-
-	int requestSpawn(WarriorType.type requestType) {
-		// TODO: update UI, and return response
-		return 0;
 	}
 
 	private class MPdetailHandler implements EventHandler<MouseEvent> {
@@ -387,8 +381,8 @@ public class MPClient extends SP {
 				displayWarrior(blueSpawn, thumbnail);
 				return;
 			}
-			updateDetails(t == 0 ? warriors[2 * (city-1)] : warriors[2 * (city-1) + 1]);
-			displayWarrior(t == 0 ? warriors[2 * (city-1)] : warriors[2 * (city-1) + 1], thumbnail);
+			updateDetails(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1]);
+			displayWarrior(t == 0 ? warriors[2 * (city - 1)] : warriors[2 * (city - 1) + 1], thumbnail);
 
 		}
 
@@ -420,14 +414,16 @@ public class MPClient extends SP {
 		((ImageView) slots[0].getChildren().get(0)).setImage(null);// spawned
 																	// moved out
 		for (int i = 0; i < 5; i++) {
-			Warrior w1=warriors[2 * i];
-			Warrior w2=warriors[2 * i+1];
-			if(w1==null&&w2==null){
-				displayWarrior(null,i+1);
+			Warrior w1 = warriors[2 * i];
+			Warrior w2 = warriors[2 * i + 1];
+			if (w1 == null && w2 == null) {
+				displayWarrior(null, i + 1);
 				continue;
 			}
-			if(w1!=null)displayWarrior(w1, i + 1);
-			if(w2!=null)displayWarrior(w2, i + 1);
+			if (w1 != null)
+				displayWarrior(w1, i + 1);
+			if (w2 != null)
+				displayWarrior(w2, i + 1);
 		}
 		((ImageView) slots[6].getChildren().get(1)).setImage(null);// spawned
 																	// moved out

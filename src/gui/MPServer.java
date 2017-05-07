@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.NoSuchElementException;
+import java.util.concurrent.BlockingQueue;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -33,7 +34,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import warriors.Warrior;
-import world.City;
 import world.Team;
 import world.WarriorType;
 import world.WarriorType.type;
@@ -52,6 +52,8 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 	BooleanProperty shouldUpdateRed = new SimpleBooleanProperty(false);
 	BooleanProperty disconnected = new SimpleBooleanProperty(false);
 
+	private int spawnResponseWriteBack;
+
 	MPServer(int[][] param, String hostIP) {
 		super(param, false);
 		world = new MPWorld(param);
@@ -69,7 +71,8 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		gameUI.setTitle("Multiplayer");
 		gameUI.setOnCloseRequest(e -> {
 			try {
-				out.writeInt(Def.serverShutdown);
+				out.close();
+				in.close();
 			} catch (IOException e1) {
 				Platform.runLater(new IOPrompt(e1));
 			} finally {
@@ -125,7 +128,39 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		});
 		shouldUpdateBlue.addListener((o, ov, c) -> {// don't need to send
 			if (c == true) {
-				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
+//				Warrior w=world.hq[1].warriorInHQ.getFirst();
+//				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
+//				
+//				try {
+//					out.reset();
+//					out.writeInt(Def.spawnResponse);
+//					out.writeInt(spawnResponseWriteBack);
+//					out.writeInt(Def.updateBlueSpawn);
+//					out.writeInt(Def.updateBlueSpawn);
+//					out.flush();
+//				} catch (IOException e1) {
+//					Platform.runLater(new IOPrompt(e1));
+//				}
+				if(world.hq[1].warriorInHQ.isEmpty()){
+					try {
+						out.writeInt(Def.spawnResponse);
+						out.writeInt(spawnResponseWriteBack);
+						out.flush();
+					} catch (IOException e1) {
+						Platform.runLater(new IOPrompt(e1));
+					}
+				}else{
+					try {
+					out.reset();
+					out.writeInt(Def.updateBlueSpawn);
+					out.writeObject(world.hq[1].warriorInHQ.getFirst());
+					out.writeInt(Def.spawnResponse);
+					out.writeInt(spawnResponseWriteBack);
+					out.flush();
+				} catch (IOException e1) {
+					Platform.runLater(new IOPrompt(e1));
+				}
+				}
 				world.shouldUpdateBlue.set(false);
 			}
 		});
@@ -143,32 +178,32 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 				}
 			}
 		});
-		world.shouldUpdateMap.addListener((a, b, c) -> {//10 warriors
+		world.shouldUpdateMap.addListener((a, b, c) -> {// 10 warriors
 			if (c == true) {
 				updateMap();
 				try {
-					out.reset();//cache messes things up here
+					out.reset();// cache messes things up here
 					out.writeInt(Def.updateMap);
-					for(int i=0;i<5;++i){
-						if(world.cities[i].warriorInCity.isEmpty()){
+					for (int i = 0; i < 5; ++i) {
+						if (world.cities[i].warriorInCity.isEmpty()) {
 							out.writeObject(null);
 							out.flush();
 							out.writeObject(null);
 							out.flush();
 							continue;
 						}
-						Warrior wa1=world.cities[i].warriorInCity.getFirst();
-						Warrior wa2=world.cities[i].warriorInCity.getLast();
-						out.writeObject(wa1.getTeam()==Team.red?wa1:null);//TODO: things wrong here
-				
-						out.writeObject(wa2.getTeam()==Team.blue?wa2:null);
-						
+						Warrior wa1 = world.cities[i].warriorInCity.getFirst();
+						Warrior wa2 = world.cities[i].warriorInCity.getLast();
+						out.writeObject(wa1.getTeam() == Team.red ? wa1 : null);
+
+						out.writeObject(wa2.getTeam() == Team.blue ? wa2 : null);
+
 					}
-//					out.flush();
+					// out.flush();
 					System.out.println("sent all warriors");
 				} catch (IOException e1) {
 					Platform.runLater(new IOPrompt(e1));
-//					e1.printStackTrace();
+					// e1.printStackTrace();
 				}
 				world.shouldUpdateMap.set(false);
 			}
@@ -213,7 +248,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 	public synchronized void handle(ActionEvent event) {
 		((Stage) (((Node) event.getSource()).getScene().getWindow())).close();
 		new Thread(new acceptConnection()).start();
-		//keep JavaFX thread running normally
+		// keep JavaFX thread running normally
 	}
 
 	private VBox initConnectUI() {
@@ -392,7 +427,16 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 					new Thread(world).start();
 					gameUI.show();// starts game
 				});
-				// TODO: add message sender/receiver(decoder) here
+				new Thread(() -> {
+					try {
+						spawnResponseWriteBack = world.requestSpawn((WarriorType.type) in.readObject(), Team.blue);
+						shouldUpdateBlue.set(true);
+					} catch (IOException e) {
+						Platform.runLater(new IOPrompt(e));
+					} catch (ClassNotFoundException e) {
+						System.err.println("Check casting");
+					}
+				}).start();
 			} catch (IOException e) {
 				connectMsg.setText(e.getMessage() + ". Please retry.");
 				connectMsg.setFill(Color.RED);

@@ -32,7 +32,7 @@ public class MPWorld extends SPWorld {
 		case ICEMAN:
 			if (rhq.lifeElements.get() >= type.getHP(WarriorType.type.ICEMAN)) {
 				ret = new Iceman(ID, type.getHP(WarriorType.type.ICEMAN), type.geAttack(WarriorType.type.ICEMAN),
-						Team.red);
+						team);
 				rhq.lifeElements.set(rhq.lifeElements.get() - type.getHP(WarriorType.type.ICEMAN));
 				rhq.spawnIndex++;
 			} else
@@ -40,7 +40,7 @@ public class MPWorld extends SPWorld {
 			break;
 		case LION:
 			if (rhq.lifeElements.get() >= type.getHP(WarriorType.type.LION)) {
-				ret = new Lion(ID, type.getHP(WarriorType.type.LION), type.geAttack(WarriorType.type.LION), Team.red);
+				ret = new Lion(ID, type.getHP(WarriorType.type.LION), type.geAttack(WarriorType.type.LION), team);
 				rhq.lifeElements.set(rhq.lifeElements.get() - type.getHP(WarriorType.type.LION));
 				rhq.spawnIndex++;
 			} else
@@ -48,7 +48,7 @@ public class MPWorld extends SPWorld {
 			break;
 		case WOLF:
 			if (rhq.lifeElements.get() >= type.getHP(WarriorType.type.WOLF)) {
-				ret = new Wolf(ID, type.getHP(WarriorType.type.WOLF), type.geAttack(WarriorType.type.WOLF), Team.red);
+				ret = new Wolf(ID, type.getHP(WarriorType.type.WOLF), type.geAttack(WarriorType.type.WOLF), team);
 				rhq.lifeElements.set(rhq.lifeElements.get() - type.getHP(WarriorType.type.WOLF));
 				rhq.spawnIndex++;
 			} else
@@ -57,7 +57,7 @@ public class MPWorld extends SPWorld {
 		case NINJA:
 			if (rhq.lifeElements.get() >= type.getHP(WarriorType.type.NINJA)) {
 				ret = new Ninja(ID, type.getHP(WarriorType.type.NINJA), type.geAttack(WarriorType.type.NINJA),
-						Team.red);
+						team);
 				rhq.lifeElements.set(rhq.lifeElements.get() - type.getHP(WarriorType.type.NINJA));
 				rhq.spawnIndex++;
 			} else
@@ -66,7 +66,7 @@ public class MPWorld extends SPWorld {
 		case DRAGON:
 			if (rhq.lifeElements.get() >= type.getHP(WarriorType.type.DRAGON)) {
 				ret = new Dragon(ID, type.getHP(WarriorType.type.DRAGON), type.geAttack(WarriorType.type.DRAGON),
-						Team.red);
+						team);
 				rhq.lifeElements.set(rhq.lifeElements.get() - type.getHP(WarriorType.type.DRAGON));
 				rhq.spawnIndex++;
 			} else

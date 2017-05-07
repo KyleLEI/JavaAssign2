@@ -28,10 +28,6 @@ public class TestClient{
 	}
 	static void decode(int header) throws IOException, ClassNotFoundException{
 		switch(header){
-		case Def.serverShutdown:
-			System.out.println("Server shutdown");
-			System.exit(0);
-			break;
 		case Def.updateLE://int
 			System.out.println(in.readInt());
 			break;

@@ -17,21 +17,16 @@ public interface Def {
 	/*------Multiplayer Messaging------*/
 	final int portNo=4095;
 	
-	/*---To Client---*/
-	final int serverShutdown=-1;
 	final int updateLE=0;//int
 	final int updateTime=1;//UTF
 	final int updateEnd=2;//UTF, update end
 	final int updateRedSpawn=3;//Warrior
-	final int updateMap=4;//10 warriors
-	final int updateFlag=5;//int city, Team flag
-	final int updateRedOccu=6;//int
-	final int updateBlueOccu=7;//int
-	final int spawnResponse=8;//int,Warrior
-	
-	/*---To Server---*/
-	final int clientDisconnect=-1;
-	final int requestResponse=0;
+	final int updateBlueSpawn=4;//Warrior
+	final int updateMap=5;//10 warriors
+	final int updateFlag=6;//int city, Team flag
+	final int updateRedOccu=7;//int
+	final int updateBlueOccu=8;//int
+	final int spawnResponse=9;//int
 	
 	
 }
