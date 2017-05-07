@@ -48,7 +48,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 	private Stage gameUI;
 
 	private MPWorld world;
-	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
+//	BooleanProperty shouldUpdateBlue = new SimpleBooleanProperty(false);
 	BooleanProperty shouldUpdateRed = new SimpleBooleanProperty(false);
 	BooleanProperty disconnected = new SimpleBooleanProperty(false);
 
@@ -110,60 +110,19 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 		world.end.addListener((a, b, c) -> {
 			if (world.redHQOccupierCount.get() == 2) {
 				spawnMsg.setText("Blue\nVictory!");
+				informEnd();
 				return;
 			}
 			if (world.blueHQOccupierCount.get() == 2) {
 				spawnMsg.setText("Red\nVictory!");
+				informEnd();
 				return;
 			}
 			spawnMsg.setText("It's a\nDraw!");
-			// send end message to client
-			try {
-				out.writeInt(Def.updateEnd);
-				out.writeUTF(spawnMsg.getText());
-				out.flush();
-			} catch (IOException e1) {
-				Platform.runLater(new IOPrompt(e1));
-			}
+			informEnd();
+			
 		});
-		shouldUpdateBlue.addListener((o, ov, c) -> {// don't need to send
-			if (c == true) {
-//				Warrior w=world.hq[1].warriorInHQ.getFirst();
-//				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
-//				
-//				try {
-//					out.reset();
-//					out.writeInt(Def.spawnResponse);
-//					out.writeInt(spawnResponseWriteBack);
-//					out.writeInt(Def.updateBlueSpawn);
-//					out.writeInt(Def.updateBlueSpawn);
-//					out.flush();
-//				} catch (IOException e1) {
-//					Platform.runLater(new IOPrompt(e1));
-//				}
-				if(world.hq[1].warriorInHQ.isEmpty()){
-					try {
-						out.writeInt(Def.spawnResponse);
-						out.writeInt(spawnResponseWriteBack);
-						out.flush();
-					} catch (IOException e1) {
-						Platform.runLater(new IOPrompt(e1));
-					}
-				}else{
-					try {
-					out.reset();
-					out.writeInt(Def.updateBlueSpawn);
-					out.writeObject(world.hq[1].warriorInHQ.getFirst());
-					out.writeInt(Def.spawnResponse);
-					out.writeInt(spawnResponseWriteBack);
-					out.flush();
-				} catch (IOException e1) {
-					Platform.runLater(new IOPrompt(e1));
-				}
-				}
-				world.shouldUpdateBlue.set(false);
-			}
-		});
+		// shouldUpdateBlue.addListener((o, ov, c) -> );
 		shouldUpdateRed.addListener((o, ov, c) -> {
 			if (c == true) {
 				displayWarrior(world.hq[0].warriorInHQ.getFirst(), 0);
@@ -187,9 +146,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 					for (int i = 0; i < 5; ++i) {
 						if (world.cities[i].warriorInCity.isEmpty()) {
 							out.writeObject(null);
-							out.flush();
 							out.writeObject(null);
-							out.flush();
 							continue;
 						}
 						Warrior wa1 = world.cities[i].warriorInCity.getFirst();
@@ -199,8 +156,7 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 						out.writeObject(wa2.getTeam() == Team.blue ? wa2 : null);
 
 					}
-					// out.flush();
-					System.out.println("sent all warriors");
+					out.flush();
 				} catch (IOException e1) {
 					Platform.runLater(new IOPrompt(e1));
 					// e1.printStackTrace();
@@ -242,6 +198,39 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 				Platform.runLater(new IOPrompt(e1));
 			}
 		});
+	}
+
+	private void updateBlue() {
+		if (world.hq[1].warriorInHQ.isEmpty()) {
+			try {
+				out.writeInt(Def.spawnResponse);
+				out.writeInt(spawnResponseWriteBack);
+				out.flush();
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
+		} else {
+			try {
+				out.writeInt(Def.updateBlueSpawn);
+				out.writeObject(world.hq[1].warriorInHQ.getFirst());
+				out.writeInt(Def.spawnResponse);
+				out.writeInt(spawnResponseWriteBack);
+				out.flush();
+				displayWarrior(world.hq[1].warriorInHQ.getFirst(), 6);
+			} catch (IOException e1) {
+				Platform.runLater(new IOPrompt(e1));
+			}
+		}
+	}
+	
+	private void informEnd(){
+		try {
+			out.writeInt(Def.updateEnd);
+			out.writeUTF(spawnMsg.getText());
+			out.flush();
+		} catch (IOException e1) {
+			Platform.runLater(new IOPrompt(e1));
+		}
 	}
 
 	@Override
@@ -428,13 +417,15 @@ public class MPServer extends SP implements EventHandler<ActionEvent> {
 					gameUI.show();// starts game
 				});
 				new Thread(() -> {
-					try {
-						spawnResponseWriteBack = world.requestSpawn((WarriorType.type) in.readObject(), Team.blue);
-						shouldUpdateBlue.set(true);
-					} catch (IOException e) {
-						Platform.runLater(new IOPrompt(e));
-					} catch (ClassNotFoundException e) {
-						System.err.println("Check casting");
+					for (;;) {
+						try {
+							spawnResponseWriteBack = world.requestSpawn((WarriorType.type) in.readObject(), Team.blue);
+							updateBlue();
+						} catch (IOException e) {
+							Platform.runLater(new IOPrompt(e));
+						} catch (ClassNotFoundException e) {
+							System.err.println("Check casting: " + e.getMessage());
+						}
 					}
 				}).start();
 			} catch (IOException e) {

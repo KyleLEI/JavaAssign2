@@ -109,12 +109,13 @@ public class MPClient extends SP {
 	private void decode(int header) throws IOException, ClassNotFoundException {
 		switch (header) {
 		case Def.updateLE:// int
-			LE.setText("Life Element: " + in.readInt());
+			LE.setText("Life Elements: " + in.readInt());
 			break;
 		case Def.updateTime:// UTF
 			time.setText(in.readUTF());
 			break;
 		case Def.updateEnd:// UTF, update end
+			System.out.println("Should end now");
 			this.end = true;
 			spawnMsg.setText(in.readUTF());
 			break;
@@ -147,9 +148,8 @@ public class MPClient extends SP {
 		case Def.spawnResponse:
 			switch (in.readInt()) { // handle spawn // results
 			case Def.mSpawnSuccess:
-				// displayWarrior(blueSpawn,6);
 				Thread t = new Thread(() -> {
-					String str = blueSpawn.getClass().getName() + "\nspawned!";
+					String str = blueSpawn.getClass().getSimpleName() + "\nspawned!";
 					spawnMsg.setText(str);
 					try {
 						Thread.sleep(1000);
@@ -281,17 +281,17 @@ public class MPClient extends SP {
 
 		ImageView spawnLion = new ImageView();
 		spawnLion.setImage(imgs.lion);
-		spawnLion.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
+		spawnLion.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.LION));
 		flow.getChildren().add(spawnLion);
 
 		ImageView spawnWolf = new ImageView();
 		spawnWolf.setImage(imgs.wolf);
-		spawnWolf.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
+		spawnWolf.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.WOLF));
 		flow.getChildren().add(spawnWolf);
 
 		ImageView spawnNinja = new ImageView();
 		spawnNinja.setImage(imgs.ninja);
-		spawnNinja.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.DRAGON));
+		spawnNinja.setOnMouseClicked((e) -> requestSpawn(WarriorType.type.NINJA));
 		flow.getChildren().add(spawnNinja);
 
 		spawnMsg = new Text();
@@ -350,6 +350,8 @@ public class MPClient extends SP {
 	}
 
 	void requestSpawn(WarriorType.type requestType) {
+		if (end)
+			return;
 		try {
 			out.reset();
 			out.writeObject(requestType);
@@ -414,12 +416,11 @@ public class MPClient extends SP {
 		((ImageView) slots[0].getChildren().get(0)).setImage(null);// spawned
 																	// moved out
 		for (int i = 0; i < 5; i++) {
+			cleanMap(i + 1);
 			Warrior w1 = warriors[2 * i];
 			Warrior w2 = warriors[2 * i + 1];
-			if (w1 == null && w2 == null) {
-				displayWarrior(null, i + 1);
+			if (w1 == null && w2 == null)
 				continue;
-			}
 			if (w1 != null)
 				displayWarrior(w1, i + 1);
 			if (w2 != null)
